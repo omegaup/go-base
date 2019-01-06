@@ -93,11 +93,9 @@ func rootCauseStackTrace(err error) errors.StackTrace {
 	var deepestStackTrace errors.StackTrace
 
 	for err != nil {
-		stackTrace, ok := err.(stackTracer)
-		if !ok {
-			break
+		if stackTrace, ok := err.(stackTracer); ok {
+			deepestStackTrace = stackTrace.StackTrace()
 		}
-		deepestStackTrace = stackTrace.StackTrace()
 
 		cause, ok := err.(causer)
 		if !ok {
