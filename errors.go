@@ -85,3 +85,23 @@ func HasErrorCategory(err error, category error) bool {
 	}
 	return false
 }
+
+// UnwrapCauseFromErrorCategory finds an error with the specified category in
+// the chain and returns its Cause(). Returns nil if no such error was found.
+func UnwrapCauseFromErrorCategory(err error, category error) error {
+	for err != nil {
+		cat, catOk := err.(categorizer)
+		cause, causeOk := err.(causer)
+		if catOk && cat.Category() == category {
+			if !causeOk {
+				return nil
+			}
+			return cause.Cause()
+		}
+		if !causeOk {
+			break
+		}
+		err = cause.Cause()
+	}
+	return nil
+}
