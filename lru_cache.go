@@ -23,6 +23,8 @@ type SizedEntryRef struct {
 	cacheEntry *lruCacheEntry
 }
 
+// A SizedEntryFactory is a factory that can create a SizedEntry given its key
+// name.
 type SizedEntryFactory func(key string) (SizedEntry, error)
 
 // An lruCacheEntry is an entry into an LRUCache.
@@ -162,18 +164,25 @@ func (c *LRUCache) Put(r *SizedEntryRef) {
 	r.cacheEntry = nil
 }
 
+// EntryCount is the number of elements in the LRUCache.
 func (c *LRUCache) EntryCount() int {
 	return len(c.mapping)
 }
 
+// Size is the total size in bytes of all the elements in the LRUCache.
 func (c *LRUCache) Size() Byte {
 	return c.totalSize
 }
 
+// EvictableSize is the size in bytes of all elements that are being considered
+// for eviction. This is, not currently being used.
 func (c *LRUCache) EvictableSize() Byte {
 	return c.evictableSize
 }
 
+// OvercommittedSize is the size in bytes that have been allocated above the
+// LRUCache's size limit. This number can be non-zero when all the elements in
+// the cache are currently being used and cannot yet be evicted.
 func (c *LRUCache) OvercommittedSize() Byte {
 	return MaxBytes(
 		Byte(0),
