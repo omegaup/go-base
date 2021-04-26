@@ -1,4 +1,4 @@
-module github.com/omegaup/go-base
+module github.com/omegaup/go-base/v2
 
 go 1.13
 

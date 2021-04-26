@@ -32,14 +32,14 @@ func nopCloser() error { return nil }
 // RotatingLog opens a log15.Logger, and if it will be pointed to a real file,
 // it installs a SIGHUP handler that will atomically reopen the file and
 // redirect all future logging operations.
-func RotatingLog(file string, level string) (log15.Logger, error) {
+func RotatingLog(file string, level string, json bool) (log15.Logger, error) {
 	log := log15.New()
 	var handler log15.Handler
 	closer := nopCloser
 	if file == "/dev/null" {
 		handler = log15.DiscardHandler()
 	} else if file == "stderr" {
-		handler = log15.StderrHandler
+		handler = StderrHandler(json)
 	} else {
 		loggingFile, err := NewRotatingFile(
 			file,
@@ -52,9 +52,14 @@ func RotatingLog(file string, level string) (log15.Logger, error) {
 			return nil, err
 		}
 
-		fmtr := log15.LogfmtFormat()
+		var formatter log15.Format
+		if json {
+			formatter = log15.JsonFormat()
+		} else {
+			formatter = log15.LogfmtFormat()
+		}
 		handler = log15.FuncHandler(func(r *log15.Record) error {
-			_, err := loggingFile.Write(fmtr.Format(r))
+			_, err := loggingFile.Write(formatter.Format(r))
 			return err
 		})
 		handler = log15.LazyHandler(handler)
@@ -76,10 +81,20 @@ func RotatingLog(file string, level string) (log15.Logger, error) {
 
 // StderrLog creates a log15.Logger that outputs to stderr and prints the stack
 // for the log call and the error stack trace if available.
-func StderrLog() log15.Logger {
+func StderrLog(json bool) log15.Logger {
 	log := log15.New()
-	log.SetHandler(ErrorCallerStackHandler(log15.LvlDebug, log15.StderrHandler))
+	log.SetHandler(ErrorCallerStackHandler(log15.LvlDebug, StderrHandler(json)))
 	return log
+}
+
+// StderrHandler cretes a log15.Handler that outputs to stderr (like
+// log15.StderrHandler), but also lets the caller optionally choose to format
+// the output in JSON instead of logfmt.
+func StderrHandler(json bool) log15.Handler {
+	if json {
+		return log15.StreamHandler(os.Stderr, log15.JsonFormat())
+	}
+	return log15.StderrHandler
 }
 
 func rootCauseStackTrace(err error) errors.StackTrace {
