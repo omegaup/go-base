@@ -1,4 +1,4 @@
-module github.com/omegaup/go-base/v2/tracing/newrelic
+module github.com/omegaup/go-base/tracing/newrelic
 
 go 1.17
 
