@@ -3,7 +3,7 @@ package newrelic
 import (
 	"net/http"
 
-	"github.com/omegaup/go-base/v2/tracing"
+	"github.com/omegaup/go-base/v3/tracing"
 
 	nr "github.com/newrelic/go-agent/v3/newrelic"
 )

@@ -9,7 +9,7 @@ import (
 	log "github.com/inconshreveable/log15"
 	"github.com/pkg/errors"
 
-	"github.com/omegaup/go-base/v2/logging"
+	"github.com/omegaup/go-base/v3/logging"
 )
 
 type log15Logger struct {
