@@ -10,3 +10,5 @@ require (
 	github.com/pkg/errors v0.8.1
 	golang.org/x/sys v0.0.0-20191206220618-eeba5f6aabab // indirect
 )
+
+require github.com/go-logfmt/logfmt v0.5.1 // indirect
