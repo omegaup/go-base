@@ -1,6 +1,7 @@
 package logging
 
 import (
+	"context"
 	"io"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 // Logger is an interface compatible with newrelic.Logger
 type Logger interface {
 	New(context map[string]interface{}) Logger
+	NewContext(ctx context.Context) Logger
 	Error(msg string, context map[string]interface{})
 	Warn(msg string, context map[string]interface{})
 	Info(msg string, context map[string]interface{})
@@ -46,7 +48,21 @@ func NewMultiLogger(l ...Logger) Logger {
 }
 
 func (l *multiLogger) New(context map[string]interface{}) Logger {
-	return &multiLogger{l: l.l, context: mergeContexts(l.context, context)}
+	return &multiLogger{
+		l:       l.l,
+		context: mergeContexts(l.context, context),
+	}
+}
+
+func (l *multiLogger) NewContext(ctx context.Context) Logger {
+	loggers := make([]Logger, len(l.l))
+	for i := 0; i < len(l.l); i++ {
+		loggers[i] = l.l[i].NewContext(ctx)
+	}
+	return &multiLogger{
+		l:       loggers,
+		context: l.context,
+	}
 }
 
 func (l *multiLogger) Error(msg string, context map[string]interface{}) {
@@ -97,7 +113,14 @@ func NewInMemoryLogfmtLogger(w io.Writer) Logger {
 }
 
 func (l *inMemoryLogfmtLogger) New(context map[string]interface{}) Logger {
-	return &inMemoryLogfmtLogger{w: l.w, context: mergeContexts(l.context, context)}
+	return &inMemoryLogfmtLogger{
+		w:       l.w,
+		context: mergeContexts(l.context, context),
+	}
+}
+
+func (l *inMemoryLogfmtLogger) NewContext(ctx context.Context) Logger {
+	return l
 }
 
 func (l *inMemoryLogfmtLogger) Error(msg string, context map[string]interface{}) {

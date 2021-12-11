@@ -2,11 +2,13 @@ package log15
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 
 	"github.com/go-stack/stack"
 	log "github.com/inconshreveable/log15"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/pkg/errors"
 
 	"github.com/omegaup/go-base/v3/logging"
@@ -24,7 +26,33 @@ func Wrap(l log.Logger) logging.Logger {
 }
 
 func (l *log15Logger) New(context map[string]interface{}) logging.Logger {
-	return &log15Logger{l: l.l.New(log.Ctx(context))}
+	return &log15Logger{
+		l: l.l.New(log.Ctx(context)),
+	}
+}
+
+func (l *log15Logger) NewContext(ctx context.Context) logging.Logger {
+	txn := newrelic.FromContext(ctx)
+	if txn == nil {
+		return l
+	}
+	lm := txn.GetLinkingMetadata()
+	context := make(map[string]interface{}, 6)
+	addField := func(key, val string) {
+		if val == "" {
+			return
+		}
+		context[key] = val
+	}
+	// These constants come from
+	// https://pkg.go.dev/github.com/newrelic/go-agent/v3/integrations/logcontext/nrlogrusplugin
+	addField("trace.id", lm.TraceID)
+	addField("span.id", lm.SpanID)
+	addField("entity.name", lm.EntityName)
+	addField("entity.type", lm.EntityType)
+	addField("entity.guid", lm.EntityGUID)
+	addField("hostname", lm.Hostname)
+	return l.New(context)
 }
 
 func (l *log15Logger) Error(msg string, context map[string]interface{}) {
@@ -112,7 +140,7 @@ func rootCauseStackTrace(err error) errors.StackTrace {
 func errorCallerStackHandler(maxLvl log.Lvl, handler log.Handler) log.Handler {
 	callerStackHandler := log.FuncHandler(func(r *log.Record) error {
 		// Get the stack trace of the call to log.Error/log.Crit.
-		s := stack.Trace().TrimBelow(r.Call).TrimRuntime()
+		s := stack.Trace().TrimBelow(r.Call).TrimRuntime()[1:]
 		if len(s) > 0 {
 			var buf bytes.Buffer
 
@@ -125,7 +153,15 @@ func errorCallerStackHandler(maxLvl log.Lvl, handler log.Handler) log.Handler {
 			}
 			buf.WriteString("]")
 
-			r.Ctx = append(r.Ctx, "stack", buf.String())
+			r.Ctx = append(
+				r.Ctx,
+				"stack", buf.String(),
+				// These constants come from
+				// https://pkg.go.dev/github.com/newrelic/go-agent/v3/integrations/logcontext/nrlogrusplugin
+				"file.name", fmt.Sprintf("%s", s[0]),
+				"line.number", fmt.Sprintf("%d", s[0]),
+				"method.name", fmt.Sprintf("%n", s[0]),
+			)
 		}
 
 		// Get the stack trace of the first error value.
@@ -140,7 +176,10 @@ func errorCallerStackHandler(maxLvl log.Lvl, handler log.Handler) log.Handler {
 				continue
 			}
 
-			r.Ctx = append(r.Ctx, "errstack", fmt.Sprintf("%+v", stackTrace))
+			r.Ctx = append(
+				r.Ctx,
+				"errstack", fmt.Sprintf("%+v", stackTrace),
+			)
 			break
 		}
 
@@ -150,6 +189,27 @@ func errorCallerStackHandler(maxLvl log.Lvl, handler log.Handler) log.Handler {
 		if r.Lvl > maxLvl {
 			return nil
 		}
+		logLevel := "debug"
+		switch r.Lvl {
+		case log.LvlDebug:
+			logLevel = "debug"
+		case log.LvlInfo:
+			logLevel = "info"
+		case log.LvlWarn:
+			logLevel = "warning"
+		case log.LvlError:
+			logLevel = "error"
+		case log.LvlCrit:
+			logLevel = "fatal"
+		}
+		r.Ctx = append(
+			r.Ctx,
+			// These constants come from
+			// https://pkg.go.dev/github.com/newrelic/go-agent/v3/integrations/logcontext/nrlogrusplugin
+			"timestamp", uint64(r.Time.UnixNano())/uint64(1000*1000),
+			"message", r.Msg,
+			"log.level", logLevel,
+		)
 		if r.Lvl <= log.LvlError {
 			return callerStackHandler.Log(r)
 		}
