@@ -57,7 +57,7 @@ func ErrorWithCategory(category error, cause error) error {
 }
 
 func (c *withCategory) Error() string {
-	return fmt.Sprintf("%s: %s", c.category.Error(), c.cause.Error())
+	return fmt.Sprintf("%v: %v", c.category, c.cause)
 }
 
 func (c *withCategory) Cause() error { return c.cause }

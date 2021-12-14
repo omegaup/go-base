@@ -122,7 +122,10 @@ func rootCauseStackTrace(err error) errors.StackTrace {
 
 	for err != nil {
 		if stackTrace, ok := err.(stackTracer); ok {
-			deepestStackTrace = stackTrace.StackTrace()
+			s := stackTrace.StackTrace()
+			if len(s) > 0 {
+				deepestStackTrace = s
+			}
 		}
 
 		cause, ok := err.(causer)
