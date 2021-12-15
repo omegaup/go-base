@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-stack/stack"
 	log "github.com/inconshreveable/log15"
-	"github.com/newrelic/go-agent/v3/newrelic"
 	"github.com/pkg/errors"
 
 	"github.com/omegaup/go-base/v3/logging"
+	"github.com/omegaup/go-base/v3/tracing"
 )
 
 type log15Logger struct {
@@ -32,27 +32,11 @@ func (l *log15Logger) New(context map[string]interface{}) logging.Logger {
 }
 
 func (l *log15Logger) NewContext(ctx context.Context) logging.Logger {
-	txn := newrelic.FromContext(ctx)
+	txn := tracing.FromContext(ctx)
 	if txn == nil {
 		return l
 	}
-	lm := txn.GetLinkingMetadata()
-	context := make(map[string]interface{}, 6)
-	addField := func(key, val string) {
-		if val == "" {
-			return
-		}
-		context[key] = val
-	}
-	// These constants come from
-	// https://pkg.go.dev/github.com/newrelic/go-agent/v3/integrations/logcontext/nrlogrusplugin
-	addField("trace.id", lm.TraceID)
-	addField("span.id", lm.SpanID)
-	addField("entity.name", lm.EntityName)
-	addField("entity.type", lm.EntityType)
-	addField("entity.guid", lm.EntityGUID)
-	addField("hostname", lm.Hostname)
-	return l.New(context)
+	return txn.WithMetadata(l)
 }
 
 func (l *log15Logger) Error(msg string, context map[string]interface{}) {
