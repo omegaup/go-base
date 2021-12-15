@@ -3,6 +3,8 @@ package tracing
 import (
 	"context"
 	"net/http"
+
+	"github.com/omegaup/go-base/v3/logging"
 )
 
 type key int
@@ -25,6 +27,9 @@ type Segment interface {
 // A Transaction represents one logical unit of work: either an
 // inbound web request or background task.
 type Transaction interface {
+	// WithMetadata wraps the logger with the transaction metadata.
+	WithMetadata(log logging.Logger) logging.Logger
+
 	// SetName sets the current transaction's name.
 	SetName(name string)
 
@@ -107,6 +112,9 @@ func NewNoOpTransaction() Transaction {
 	return &noopTransaction{}
 }
 
+func (t *noopTransaction) WithMetadata(log logging.Logger) logging.Logger {
+	return log
+}
 func (t *noopTransaction) SetName(name string)       {}
 func (t *noopTransaction) AddAttributes(args ...Arg) {}
 func (t *noopTransaction) StartSegment(name string) Segment {
