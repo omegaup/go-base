@@ -1,10 +1,44 @@
 package base
 
 import (
+	"encoding/json"
+	"fmt"
 	"math"
 	"math/big"
 	"strconv"
 )
+
+// Rat is identical to big.Rat, except it can implements the
+// json.Marshaler interface so that it can also accept integers.
+type Rat big.Rat
+
+// MarshalJSON implements the json.Marshaler interface. If the rational is an
+// integer and it fits on a IEEE 754 number, it will be marshaled as a JSON
+// number. Otherwise it will be marshaled as a string.
+func (r *Rat) MarshalJSON() ([]byte, error) {
+	if (*big.Rat)(r).IsInt() && (*big.Rat)(r).Num().BitLen() <= 53 {
+		return (*big.Rat)(r).MarshalText()
+	}
+	return []byte(fmt.Sprintf("%q", (*big.Rat)(r).RatString())), nil
+}
+
+// UnmarshalJSON implements the json.Unmarshaler interface. If the rational is
+// a number, it will be parsed as one. Otherwise, it will use
+// big.Rat.UnmarshalText.
+func (r *Rat) UnmarshalJSON(data []byte) error {
+	var i big.Int
+	err := i.UnmarshalJSON(data)
+	if err == nil {
+		(*big.Rat)(r).SetInt(&i)
+		return nil
+	}
+	var s string
+	err = json.Unmarshal(data, &s)
+	if err != nil {
+		return fmt.Errorf("rat: %w", err)
+	}
+	return (*big.Rat)(r).UnmarshalText([]byte(s))
+}
 
 // ParseRational returns a rational that's within 1e-6 of the floating-point
 // value that has been serialized as a string.
