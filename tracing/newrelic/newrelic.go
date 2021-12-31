@@ -92,6 +92,14 @@ func (t *transaction) NoticeError(err error) {
 	t.txn.NoticeError(err)
 }
 
+func (t *transaction) InsertDistributedTraceHeaders(h http.Header) {
+	t.txn.InsertDistributedTraceHeaders(h)
+}
+
+func (t *transaction) AcceptDistributedTraceHeaders(tt tracing.TransportType, h http.Header) {
+	t.txn.AcceptDistributedTraceHeaders(nr.TransportType(string(tt)), h)
+}
+
 func (t *transaction) End() {
 	t.txn.End()
 }

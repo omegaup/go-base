@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/newrelic/go-agent/v3 v3.15.1
-	github.com/omegaup/go-base/v3 v3.2.2
+	github.com/omegaup/go-base/v3 v3.2.5
 )
 
 require (
