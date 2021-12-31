@@ -11,6 +11,16 @@ type key int
 
 var transactionKey key
 
+// TransportType is used in Transaction.AcceptDistributedTraceHeaders to
+// represent the type of connection that the trace payload was transported
+// over.
+type TransportType string
+
+const (
+	// TransportQueue represents that the transaction was performed over a queue.
+	TransportQueue TransportType = "Queue"
+)
+
 // An Arg represents a name-value pair.
 type Arg struct {
 	Name  string
@@ -41,6 +51,15 @@ type Transaction interface {
 
 	// NoticeError associates an error with the transaction.
 	NoticeError(err error)
+
+	// InsertDistributedTraceHeaders links transactions by adding Distributed
+	// Trace headers into the headers so that a child transaction can accept
+	// them.
+	InsertDistributedTraceHeaders(h http.Header)
+
+	// AcceptDistributedTraceHeaders links transactions by accepting Distributed
+	// Trace headers from the parent transaction.
+	AcceptDistributedTraceHeaders(t TransportType, h http.Header)
 
 	// End marks the transaction as finished.
 	End()
@@ -120,8 +139,10 @@ func (t *noopTransaction) AddAttributes(args ...Arg) {}
 func (t *noopTransaction) StartSegment(name string) Segment {
 	return &noopSegment{}
 }
-func (t *noopTransaction) NoticeError(err error) {}
-func (t *noopTransaction) End()                  {}
+func (t *noopTransaction) NoticeError(err error)                                         {}
+func (t *noopTransaction) InsertDistributedTraceHeaders(h http.Header)                   {}
+func (t *noopTransaction) AcceptDistributedTraceHeaders(tt TransportType, h http.Header) {}
+func (t *noopTransaction) End()                                                          {}
 
 type noopSegment struct{}
 
