@@ -8,41 +8,38 @@ import (
 )
 
 // A SizedEntry is an entry within the LRUCache that knows its own size.
-type SizedEntry[T any] interface {
+type SizedEntry interface {
 	// Release will be called upon the entry being evicted from the cache.
 	Release()
 
 	// Size returns the number of bytes consumed by the entry.
 	Size() Byte
-
-	// Value returns the underlying value of the entry.
-	Value() T
 }
 
 // A SizedEntryRef is a wrapper around a SizedEntry.
-type SizedEntryRef[T any] struct {
-	Value      SizedEntry[T]
+type SizedEntryRef[T SizedEntry] struct {
+	Value      T
 	lruCache   *LRUCache[T]
 	cacheEntry *lruCacheEntry[T]
 }
 
 // A SizedEntryFactory is a factory that can create a SizedEntry given its key
 // name.
-type SizedEntryFactory[T any] func(key string) (SizedEntry[T], error)
+type SizedEntryFactory[T SizedEntry] func(key string) (T, error)
 
 // An lruCacheEntry is an entry into an LRUCache.
 //
 // refCount is zero if and only if listElement is non-nil.
-type lruCacheEntry[T any] struct {
+type lruCacheEntry[T SizedEntry] struct {
 	refCount    int32
 	listElement *list.Element
-	sizedEntry  SizedEntry[T]
+	sizedEntry  T
 	key         string
 }
 
 // LRUCache handles a pool of sized resources. It has a fixed maximum size with
 // a least-recently used eviction policy.
-type LRUCache[T any] struct {
+type LRUCache[T SizedEntry] struct {
 	sync.Mutex
 	mapping       map[string]*lruCacheEntry[T]
 	evictList     *list.List
@@ -52,7 +49,7 @@ type LRUCache[T any] struct {
 }
 
 // NewLRUCache returns an empty LRUCache with the provided size limit.
-func NewLRUCache[T any](sizeLimit Byte) *LRUCache[T] {
+func NewLRUCache[T SizedEntry](sizeLimit Byte) *LRUCache[T] {
 	return &LRUCache[T]{
 		mapping:   make(map[string]*lruCacheEntry[T]),
 		evictList: list.New(),
@@ -162,7 +159,8 @@ func (c *LRUCache[T]) Put(r *SizedEntryRef[T]) {
 	c.evictLocked()
 
 	// Prevent double-releasing.
-	r.Value = nil
+	var zero T
+	r.Value = zero
 	r.lruCache = nil
 	r.cacheEntry = nil
 }
