@@ -1,6 +1,6 @@
-module github.com/omegaup/go-base/tracing/newrelic
+module github.com/omegaup/go-base/tracing/newrelic/v3
 
-go 1.17
+go 1.18
 
 require (
 	github.com/newrelic/go-agent/v3 v3.15.1

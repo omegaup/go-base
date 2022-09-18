@@ -55,7 +55,7 @@ type transaction struct {
 
 func (t *transaction) WithMetadata(log logging.Logger) logging.Logger {
 	lm := t.txn.GetLinkingMetadata()
-	context := make(map[string]interface{}, 6)
+	context := make(map[string]any, 6)
 	addField := func(key, val string) {
 		if val == "" {
 			return

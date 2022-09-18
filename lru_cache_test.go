@@ -23,8 +23,12 @@ func (r *releasable) Size() Byte {
 	return r.size
 }
 
+func (r *releasable) Value() *releasable {
+	return r
+}
+
 func TestLRUCache(t *testing.T) {
-	c := NewLRUCache(Kibibyte)
+	c := NewLRUCache[*releasable](Kibibyte)
 
 	if c.Size().Bytes() != 0 {
 		t.Fatalf("c.Size() = %d; want 0", c.Size().Bytes())
@@ -43,7 +47,7 @@ func TestLRUCache(t *testing.T) {
 	// New object is created.
 	{
 		created := false
-		ref, err := c.Get("r", func(key string) (SizedEntry, error) {
+		ref, err := c.Get("r", func(key string) (SizedEntry[*releasable], error) {
 			created = true
 			return &r, nil
 		})
@@ -89,7 +93,7 @@ func TestLRUCache(t *testing.T) {
 	// Object is reused.
 	{
 		created := false
-		ref, err := c.Get("r", func(key string) (SizedEntry, error) {
+		ref, err := c.Get("r", func(key string) (SizedEntry[*releasable], error) {
 			created = true
 			return &r, nil
 		})
@@ -135,7 +139,7 @@ func TestLRUCache(t *testing.T) {
 	// New object is created, old one is evicted.
 	{
 		created := false
-		ref, err := c.Get("r1k", func(key string) (SizedEntry, error) {
+		ref, err := c.Get("r1k", func(key string) (SizedEntry[*releasable], error) {
 			created = true
 			return &r1k, nil
 		})
@@ -184,7 +188,7 @@ func TestLRUCache(t *testing.T) {
 	// New object is created, and evicted immediately upon release.
 	{
 		created := false
-		ref, err := c.Get("r1M", func(key string) (SizedEntry, error) {
+		ref, err := c.Get("r1M", func(key string) (SizedEntry[*releasable], error) {
 			created = true
 			return &r1M, nil
 		})

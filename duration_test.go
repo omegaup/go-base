@@ -66,16 +66,16 @@ func TestDurationInvalidString(t *testing.T) {
 func TestDurationComparison(t *testing.T) {
 	d1 := Duration(time.Duration(1) * time.Second)
 	d2 := Duration(time.Duration(2) * time.Second)
-	if d1 != MinDuration(d1, d2) {
-		t.Errorf("expected %v got %v", d1, MinDuration(d1, d2))
+	if d1 != Min(d1, d2) {
+		t.Errorf("expected %v got %v", d1, Min(d1, d2))
 	}
-	if d1 != MinDuration(d2, d1) {
-		t.Errorf("expected %v got %v", d1, MinDuration(d2, d1))
+	if d1 != Min(d2, d1) {
+		t.Errorf("expected %v got %v", d1, Min(d2, d1))
 	}
-	if d2 != MaxDuration(d1, d2) {
-		t.Errorf("expected %v got %v", d2, MaxDuration(d1, d2))
+	if d2 != Max(d1, d2) {
+		t.Errorf("expected %v got %v", d2, Max(d1, d2))
 	}
-	if d2 != MaxDuration(d2, d1) {
-		t.Errorf("expected %v got %v", d2, MaxDuration(d2, d1))
+	if d2 != Max(d2, d1) {
+		t.Errorf("expected %v got %v", d2, Max(d2, d1))
 	}
 }

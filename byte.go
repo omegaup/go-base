@@ -25,22 +25,6 @@ const (
 	Tebibyte = Byte(1024) * Gibibyte
 )
 
-// MinBytes returns the smaller of x or y.
-func MinBytes(x, y Byte) Byte {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-// MaxBytes returns the larger of x or y.
-func MaxBytes(x, y Byte) Byte {
-	if x > y {
-		return x
-	}
-	return y
-}
-
 // Bytes returns the Byte as an integer number of bytes.
 func (b Byte) Bytes() int64 {
 	return int64(b)

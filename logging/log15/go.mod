@@ -1,6 +1,6 @@
-module github.com/omegaup/go-base/logging/log15
+module github.com/omegaup/go-base/logging/log15/v3
 
-go 1.17
+go 1.18
 
 require (
 	github.com/go-stack/stack v1.8.1

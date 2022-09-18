@@ -24,7 +24,7 @@ const (
 // An Arg represents a name-value pair.
 type Arg struct {
 	Name  string
-	Value interface{}
+	Value any
 }
 
 // A Segment is a part of a transaction used to instrument
