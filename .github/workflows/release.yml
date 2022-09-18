@@ -32,17 +32,17 @@ jobs:
           new="logging/log15/${{ steps.bump-version.outputs.new_tag }}"
           git tag "${new}"
           curl -s -X POST $git_refs_url \
-          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
             "ref": "refs/tags/$new",
             "sha": "$commit"
           }
           EOF
-          new="tracing/newrelic/${{ steps.bump-version.new_tag }}"
+          new="tracing/newrelic/${{ steps.bump-version.outputs.new_tag }}"
           git tag "${new}"
           curl -s -X POST $git_refs_url \
-          -H "Authorization: token $GITHUB_TOKEN" \
+          -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
           -d @- << EOF
           {
             "ref": "refs/tags/$new",
