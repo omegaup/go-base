@@ -16,6 +16,7 @@ jobs:
           fetch-depth: 0
 
       - name: Bump version and push tag
+        id: bump-version
         uses: anothrNick/github-tag-action@43ed073f5c1445ca8b80d920ce2f8fa550ae4e8d
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -23,3 +24,28 @@ jobs:
           DEFAULT_BUMP: patch
           INITIAL_VERSION: 1.0.0
           RELEASE_BRANCHES: main
+
+      - name: Also push the log15 / newrelic tags
+        run: |
+          git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
+          commit="$(git rev-parse HEAD)"
+          new="logging/log15/${{ steps.bump-version.new_tag }}"
+          git tag "${new}"
+          curl -s -X POST $git_refs_url \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -d @- << EOF
+          {
+            "ref": "refs/tags/$new",
+            "sha": "$commit"
+          }
+          EOF
+          new="tracing/newrelic/${{ steps.bump-version.new_tag }}"
+          git tag "${new}"
+          curl -s -X POST $git_refs_url \
+          -H "Authorization: token $GITHUB_TOKEN" \
+          -d @- << EOF
+          {
+            "ref": "refs/tags/$new",
+            "sha": "$commit"
+          }
+          EOF
