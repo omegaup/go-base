@@ -61,19 +61,3 @@ func (d Duration) Milliseconds() float64 {
 func (d Duration) Seconds() float64 {
 	return time.Duration(d).Seconds()
 }
-
-// MinDuration returns the smaller of x or y.
-func MinDuration(x, y Duration) Duration {
-	if x < y {
-		return x
-	}
-	return y
-}
-
-// MaxDuration returns the larger of x or y.
-func MaxDuration(x, y Duration) Duration {
-	if x > y {
-		return x
-	}
-	return y
-}

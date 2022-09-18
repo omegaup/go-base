@@ -95,16 +95,16 @@ func TestByteInvalidString(t *testing.T) {
 func TestByteComparison(t *testing.T) {
 	b1 := Byte(1)
 	b2 := Byte(2)
-	if b1 != MinBytes(b1, b2) {
-		t.Errorf("expected %v got %v", b1, MinBytes(b1, b2))
+	if b1 != Min(b1, b2) {
+		t.Errorf("expected %v got %v", b1, Min(b1, b2))
 	}
-	if b1 != MinBytes(b2, b1) {
-		t.Errorf("expected %v got %v", b1, MinBytes(b2, b1))
+	if b1 != Min(b2, b1) {
+		t.Errorf("expected %v got %v", b1, Min(b2, b1))
 	}
-	if b2 != MaxBytes(b1, b2) {
-		t.Errorf("expected %v got %v", b2, MaxBytes(b1, b2))
+	if b2 != Max(b1, b2) {
+		t.Errorf("expected %v got %v", b2, Max(b1, b2))
 	}
-	if b2 != MaxBytes(b2, b1) {
-		t.Errorf("expected %v got %v", b2, MaxBytes(b2, b1))
+	if b2 != Max(b2, b1) {
+		t.Errorf("expected %v got %v", b2, Max(b2, b1))
 	}
 }

@@ -10,23 +10,23 @@ import (
 
 // Logger is an interface compatible with newrelic.Logger
 type Logger interface {
-	New(context map[string]interface{}) Logger
+	New(context map[string]any) Logger
 	NewContext(ctx context.Context) Logger
-	Error(msg string, context map[string]interface{})
-	Warn(msg string, context map[string]interface{})
-	Info(msg string, context map[string]interface{})
-	Debug(msg string, context map[string]interface{})
+	Error(msg string, context map[string]any)
+	Warn(msg string, context map[string]any)
+	Info(msg string, context map[string]any)
+	Debug(msg string, context map[string]any)
 	DebugEnabled() bool
 }
 
-func mergeContexts(a, b map[string]interface{}) map[string]interface{} {
+func mergeContexts(a, b map[string]any) map[string]any {
 	if len(a) == 0 {
 		return b
 	}
 	if len(b) == 0 {
 		return a
 	}
-	newContext := make(map[string]interface{}, len(a)+len(b))
+	newContext := make(map[string]any, len(a)+len(b))
 	for k, v := range a {
 		newContext[k] = v
 	}
@@ -38,7 +38,7 @@ func mergeContexts(a, b map[string]interface{}) map[string]interface{} {
 
 type multiLogger struct {
 	l       []Logger
-	context map[string]interface{}
+	context map[string]any
 }
 
 // NewMultiLogger returns a composed Logger that forwards all calls to all
@@ -47,7 +47,7 @@ func NewMultiLogger(l ...Logger) Logger {
 	return &multiLogger{l: l}
 }
 
-func (l *multiLogger) New(context map[string]interface{}) Logger {
+func (l *multiLogger) New(context map[string]any) Logger {
 	return &multiLogger{
 		l:       l.l,
 		context: mergeContexts(l.context, context),
@@ -65,28 +65,28 @@ func (l *multiLogger) NewContext(ctx context.Context) Logger {
 	}
 }
 
-func (l *multiLogger) Error(msg string, context map[string]interface{}) {
+func (l *multiLogger) Error(msg string, context map[string]any) {
 	newContext := mergeContexts(l.context, context)
 	for _, ll := range l.l {
 		ll.Error(msg, newContext)
 	}
 }
 
-func (l *multiLogger) Warn(msg string, context map[string]interface{}) {
+func (l *multiLogger) Warn(msg string, context map[string]any) {
 	newContext := mergeContexts(l.context, context)
 	for _, ll := range l.l {
 		ll.Warn(msg, newContext)
 	}
 }
 
-func (l *multiLogger) Info(msg string, context map[string]interface{}) {
+func (l *multiLogger) Info(msg string, context map[string]any) {
 	newContext := mergeContexts(l.context, context)
 	for _, ll := range l.l {
 		ll.Info(msg, newContext)
 	}
 }
 
-func (l *multiLogger) Debug(msg string, context map[string]interface{}) {
+func (l *multiLogger) Debug(msg string, context map[string]any) {
 	newContext := mergeContexts(l.context, context)
 	for _, ll := range l.l {
 		ll.Debug(msg, newContext)
@@ -104,7 +104,7 @@ func (l *multiLogger) DebugEnabled() bool {
 
 type inMemoryLogfmtLogger struct {
 	w       *logfmt.Encoder
-	context map[string]interface{}
+	context map[string]any
 }
 
 // NewInMemoryLogfmtLogger writes logfmt-formatted records to the provided writer.
@@ -112,7 +112,7 @@ func NewInMemoryLogfmtLogger(w io.Writer) Logger {
 	return &inMemoryLogfmtLogger{w: logfmt.NewEncoder(w)}
 }
 
-func (l *inMemoryLogfmtLogger) New(context map[string]interface{}) Logger {
+func (l *inMemoryLogfmtLogger) New(context map[string]any) Logger {
 	return &inMemoryLogfmtLogger{
 		w:       l.w,
 		context: mergeContexts(l.context, context),
@@ -123,7 +123,7 @@ func (l *inMemoryLogfmtLogger) NewContext(ctx context.Context) Logger {
 	return l
 }
 
-func (l *inMemoryLogfmtLogger) Error(msg string, context map[string]interface{}) {
+func (l *inMemoryLogfmtLogger) Error(msg string, context map[string]any) {
 	l.w.EncodeKeyvals(
 		"t", time.Now().Format(time.RFC3339),
 		"lvl", "eror",
@@ -135,7 +135,7 @@ func (l *inMemoryLogfmtLogger) Error(msg string, context map[string]interface{})
 	l.w.EndRecord()
 }
 
-func (l *inMemoryLogfmtLogger) Warn(msg string, context map[string]interface{}) {
+func (l *inMemoryLogfmtLogger) Warn(msg string, context map[string]any) {
 	l.w.EncodeKeyvals(
 		"t", time.Now().Format(time.RFC3339),
 		"lvl", "warn",
@@ -147,7 +147,7 @@ func (l *inMemoryLogfmtLogger) Warn(msg string, context map[string]interface{}) 
 	l.w.EndRecord()
 }
 
-func (l *inMemoryLogfmtLogger) Info(msg string, context map[string]interface{}) {
+func (l *inMemoryLogfmtLogger) Info(msg string, context map[string]any) {
 	l.w.EncodeKeyvals(
 		"t", time.Now().Format(time.RFC3339),
 		"lvl", "info",
@@ -159,7 +159,7 @@ func (l *inMemoryLogfmtLogger) Info(msg string, context map[string]interface{}) 
 	l.w.EndRecord()
 }
 
-func (l *inMemoryLogfmtLogger) Debug(msg string, context map[string]interface{}) {
+func (l *inMemoryLogfmtLogger) Debug(msg string, context map[string]any) {
 	l.w.EncodeKeyvals(
 		"t", time.Now().Format(time.RFC3339),
 		"lvl", "dbug",

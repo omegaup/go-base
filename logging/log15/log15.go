@@ -25,7 +25,7 @@ func Wrap(l log.Logger) logging.Logger {
 	return &log15Logger{l: l}
 }
 
-func (l *log15Logger) New(context map[string]interface{}) logging.Logger {
+func (l *log15Logger) New(context map[string]any) logging.Logger {
 	return &log15Logger{
 		l: l.l.New(log.Ctx(context)),
 	}
@@ -39,28 +39,28 @@ func (l *log15Logger) NewContext(ctx context.Context) logging.Logger {
 	return txn.WithMetadata(l)
 }
 
-func (l *log15Logger) Error(msg string, context map[string]interface{}) {
+func (l *log15Logger) Error(msg string, context map[string]any) {
 	if l == nil {
 		return
 	}
 	l.l.Error(msg, log.Ctx(context))
 }
 
-func (l *log15Logger) Warn(msg string, context map[string]interface{}) {
+func (l *log15Logger) Warn(msg string, context map[string]any) {
 	if l == nil {
 		return
 	}
 	l.l.Warn(msg, log.Ctx(context))
 }
 
-func (l *log15Logger) Info(msg string, context map[string]interface{}) {
+func (l *log15Logger) Info(msg string, context map[string]any) {
 	if l == nil {
 		return
 	}
 	l.l.Info(msg, log.Ctx(context))
 }
 
-func (l *log15Logger) Debug(msg string, context map[string]interface{}) {
+func (l *log15Logger) Debug(msg string, context map[string]any) {
 	if l == nil {
 		return
 	}
