@@ -73,6 +73,9 @@ func FloatToRational(floatVal float64) *big.Rat {
 
 // RationalToFloat returns the closest float value to the given big.Rat.
 func RationalToFloat(val *big.Rat) float64 {
+	if val == nil {
+		return 0
+	}
 	floatVal, _ := val.Float64()
 	return floatVal
 }
