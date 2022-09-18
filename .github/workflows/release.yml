@@ -29,7 +29,7 @@ jobs:
         run: |
           git_refs_url=$(jq .repository.git_refs_url $GITHUB_EVENT_PATH | tr -d '"' | sed 's/{\/sha}//g')
           commit="$(git rev-parse HEAD)"
-          new="logging/log15/${{ steps.bump-version.new_tag }}"
+          new="logging/log15/${{ steps.bump-version.outputs.new_tag }}"
           git tag "${new}"
           curl -s -X POST $git_refs_url \
           -H "Authorization: token $GITHUB_TOKEN" \
